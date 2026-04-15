@@ -8,8 +8,36 @@ interface SignupResult {
   needsEmailConfirmation: boolean
 }
 
+function friendlySignupError(rawMessage: string): string {
+  const message = rawMessage.toLowerCase()
+
+  if (message.includes('user already registered')) {
+    return 'An account with this email already exists. Please sign in instead.'
+  }
+
+  if (message.includes('redirect_to is not allowed') || message.includes('redirect url')) {
+    return 'Auth redirect URL is not configured in Supabase. Add your Vercel URLs to Authentication > URL Configuration.'
+  }
+
+  return rawMessage
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<SignupResult>>> {
   try {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'AUTH_CONFIG_MISSING',
+            message: 'Authentication is not configured on the server. Set Supabase environment variables in Vercel.',
+            status: 500,
+          },
+        },
+        { status: 500 }
+      )
+    }
+
     const body = await request.json()
     const parsed = signupSchema.safeParse(body)
 
@@ -29,6 +57,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     const supabase = await createServerClient()
 
+    const requestOrigin = request.nextUrl.origin
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || requestOrigin
+    const emailRedirectTo = `${appUrl}/auth/callback?next=%2Fonboarding`
+
     const { data, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
@@ -36,16 +68,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         data: {
           full_name: parsed.data.full_name,
         },
+        emailRedirectTo,
       },
     })
 
     if (error) {
+      const message = friendlySignupError(error.message)
       return NextResponse.json(
         {
           success: false,
           error: {
             code: 'SIGNUP_FAILED',
-            message: error.message,
+            message,
             status: 400,
           },
         },
@@ -65,12 +99,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     )
   } catch (error) {
     console.error('[POST /api/auth/signup]', error)
+
+    const message = error instanceof Error ? error.message : 'Unknown signup error'
+
     return NextResponse.json(
       {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Something went wrong',
+          message: `Unable to create account. ${message}`,
           status: 500,
         },
       },

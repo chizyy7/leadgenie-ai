@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { signupSchema, type SignupInput } from '@/lib/validations/auth'
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton'
 import { Button } from '@/components/ui/button'
 
 export function SignupForm() {
@@ -57,6 +58,13 @@ export function SignupForm() {
 
   return (
     <form className="space-y-4" onSubmit={onSubmit} noValidate>
+      <GoogleAuthButton nextPath="/onboarding" />
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-[var(--border)]" />
+        <span className="text-xs uppercase tracking-[0.08em] text-[var(--text-secondary)]">or</span>
+        <div className="h-px flex-1 bg-[var(--border)]" />
+      </div>
+
       <div className="space-y-1.5">
         <label htmlFor="full_name" className="font-[var(--font-sora)] text-xs uppercase tracking-[0.08em] text-[var(--accent-gold)]">
           Full Name
