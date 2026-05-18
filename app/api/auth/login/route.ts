@@ -10,12 +10,16 @@ interface LoginResult {
 function friendlyLoginError(rawMessage: string): string {
   const message = rawMessage.toLowerCase()
 
+  if (message.includes('email not confirmed') || message.includes('confirm your email')) {
+    return 'Please confirm your email before signing in.'
+  }
+
   if (message.includes('invalid login credentials')) {
     return 'Invalid email or password. Please check your credentials and try again.'
   }
 
-  if (message.includes('email not confirmed')) {
-    return 'Please confirm your email before signing in.'
+  if (message.includes('invalid email or password')) {
+    return 'Invalid email or password. Please check your credentials and try again.'
   }
 
   return rawMessage
@@ -23,13 +27,20 @@ function friendlyLoginError(rawMessage: string): string {
 
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<LoginResult>>> {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    const missingEnv = [
+      { name: 'NEXT_PUBLIC_SUPABASE_URL', value: process.env.NEXT_PUBLIC_SUPABASE_URL },
+      { name: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', value: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY },
+    ]
+      .filter((entry) => !entry.value)
+      .map((entry) => entry.name)
+
+    if (missingEnv.length > 0) {
       return NextResponse.json(
         {
           success: false,
           error: {
             code: 'AUTH_CONFIG_MISSING',
-            message: 'Authentication is not configured on the server. Set Supabase environment variables in Vercel.',
+            message: `Authentication is not configured on the server. Missing: ${missingEnv.join(', ')}.`,
             status: 500,
           },
         },

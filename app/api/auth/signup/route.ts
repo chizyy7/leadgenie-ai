@@ -15,6 +15,26 @@ function friendlySignupError(rawMessage: string): string {
     return 'An account with this email already exists. Please sign in instead.'
   }
 
+  if (message.includes('email already') || message.includes('already exists')) {
+    return 'An account with this email already exists. Please sign in instead.'
+  }
+
+  if (message.includes('invalid login credentials') || message.includes('invalid email or password')) {
+    return 'Invalid email or password. Please use a valid email and a password with at least 8 characters.'
+  }
+
+  if (message.includes('invalid email')) {
+    return 'Enter a valid email address.'
+  }
+
+  if (message.includes('password') && (message.includes('weak') || message.includes('least'))) {
+    return 'Password is too weak. Please use at least 8 characters.'
+  }
+
+  if (message.includes('signups not allowed') || message.includes('signup is disabled')) {
+    return 'Signups are disabled for this project. Please contact support.'
+  }
+
   if (message.includes('redirect_to is not allowed') || message.includes('redirect url')) {
     return 'Auth redirect URL is not configured in Supabase. Add your Vercel URLs to Authentication > URL Configuration.'
   }
@@ -24,13 +44,20 @@ function friendlySignupError(rawMessage: string): string {
 
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<SignupResult>>> {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    const missingEnv = [
+      { name: 'NEXT_PUBLIC_SUPABASE_URL', value: process.env.NEXT_PUBLIC_SUPABASE_URL },
+      { name: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', value: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY },
+    ]
+      .filter((entry) => !entry.value)
+      .map((entry) => entry.name)
+
+    if (missingEnv.length > 0) {
       return NextResponse.json(
         {
           success: false,
           error: {
             code: 'AUTH_CONFIG_MISSING',
-            message: 'Authentication is not configured on the server. Set Supabase environment variables in Vercel.',
+            message: `Authentication is not configured on the server. Missing: ${missingEnv.join(', ')}.`,
             status: 500,
           },
         },
@@ -74,16 +101,32 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     if (error) {
       const message = friendlySignupError(error.message)
+      const rawMessage = error.message.toLowerCase()
+      const status = rawMessage.includes('user already registered') || rawMessage.includes('email already') ? 409 : 400
       return NextResponse.json(
         {
           success: false,
           error: {
             code: 'SIGNUP_FAILED',
             message,
-            status: 400,
+            status,
           },
         },
-        { status: 400 }
+        { status }
+      )
+    }
+
+    if (!data.user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'SIGNUP_FAILED',
+            message: 'Unable to create account. Please try again.',
+            status: 500,
+          },
+        },
+        { status: 500 }
       )
     }
 
