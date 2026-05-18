@@ -11,10 +11,10 @@ export async function proxy(request: NextRequest) {
   const isAuthOnly = AUTH_ONLY.some((route) => pathname.startsWith(route))
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
   // Prevent proxy hard-fail in production when env vars are missing.
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabasePublishableKey) {
     if (isProtected) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
@@ -22,7 +22,7 @@ export async function proxy(request: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    const supabase = createServerClient(supabaseUrl, supabasePublishableKey, {
       cookies: {
         get(name: string) {
           return request.cookies.get(name)?.value

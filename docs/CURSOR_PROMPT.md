@@ -394,7 +394,7 @@ import { createBrowserClient } from '@supabase/ssr'
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   )
 }
 
@@ -405,7 +405,7 @@ export function createServerClient() {
   const cookieStore = cookies()
   return createSSRClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         get(name: string) { return cookieStore.get(name)?.value },
@@ -435,7 +435,7 @@ export async function middleware(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     { cookies: { get: (n) => request.cookies.get(n)?.value, set: () => {}, remove: () => {} } }
   )
 
@@ -461,14 +461,14 @@ export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico).*)
 ```bash
 # .env.local
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
 ANTHROPIC_API_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NODE_ENV=development
 ```
 
-**CRITICAL:** `ANTHROPIC_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` must NEVER have `NEXT_PUBLIC_` prefix. They are server-side only.
+**CRITICAL:** `ANTHROPIC_API_KEY` and `SUPABASE_SECRET_KEY` must NEVER have `NEXT_PUBLIC_` prefix. They are server-side only.
 
 ---
 

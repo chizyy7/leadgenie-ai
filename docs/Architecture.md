@@ -112,7 +112,7 @@ LeadGenie AI
 │   ├── Pages & Routing (App Router)
 │   ├── UI Components (shadcn/ui + custom)
 │   ├── Client State (React hooks + Context)
-│   └── Supabase Client (browser-side, anon key only)
+│   └── Supabase Client (browser-side, publishable key only)
 │
 ├── API Layer (Next.js API Routes)
 │   ├── Auth routes
@@ -711,7 +711,7 @@ export async function middleware(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     { cookies: { /* cookie handlers */ } }
   )
 
@@ -735,13 +735,13 @@ export async function middleware(request: NextRequest) {
 ### 9.3 Supabase Client Setup
 
 ```typescript
-// lib/supabase/client.ts — Browser client (uses anon key only)
+// lib/supabase/client.ts — Browser client (uses publishable key only)
 import { createBrowserClient } from '@supabase/ssr'
 
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   )
 }
 
@@ -753,7 +753,7 @@ export function createServerClient() {
   const cookieStore = cookies()
   return createSSRClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     { cookies: { /* cookie handlers */ } }
   )
 }
@@ -963,10 +963,10 @@ export function useEmailGenerator(leadId: string) {
 
 # Supabase (public — safe for browser)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key-here
 
 # Supabase (private — server-side only)
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+SUPABASE_SECRET_KEY=your-secret-key-here
 
 # Anthropic Claude API (private — server-side only, NEVER expose to browser)
 ANTHROPIC_API_KEY=sk-ant-your-key-here
@@ -979,15 +979,15 @@ NODE_ENV=development
 ```bash
 # .env.example (commit this — no real values)
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
 ANTHROPIC_API_KEY=
 NEXT_PUBLIC_APP_URL=
 NODE_ENV=
 ```
 
 ### 13.2 Critical Security Rule
-`ANTHROPIC_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` must **never** be prefixed with `NEXT_PUBLIC_`. This ensures they are only available in server-side code and never bundled into the browser JavaScript.
+`ANTHROPIC_API_KEY` and `SUPABASE_SECRET_KEY` must **never** be prefixed with `NEXT_PUBLIC_`. This ensures they are only available in server-side code and never bundled into the browser JavaScript.
 
 ---
 

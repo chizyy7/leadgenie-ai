@@ -629,8 +629,8 @@ Response:
 ### 12.1 Environment Variables (Never Expose to Client)
 ```
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=     # Server-side only
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=     # Server-side only
 ANTHROPIC_API_KEY=             # Server-side only — NEVER in client code
 NEXT_PUBLIC_APP_URL=
 NODE_ENV=
