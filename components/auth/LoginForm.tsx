@@ -41,7 +41,7 @@ export function LoginForm() {
       return
     }
 
-    toast.success('Signed in successfully', {
+    toast.success('Welcome back! 👋', {
       style: { background: 'var(--success)', color: 'white' },
     })
     router.push('/onboarding')

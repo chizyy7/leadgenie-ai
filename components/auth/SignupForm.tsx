@@ -42,6 +42,10 @@ export function SignupForm() {
       return
     }
 
+    toast.success('Welcome to LeadGenie AI! 🎉', {
+      style: { background: 'var(--success)', color: 'white' },
+    })
+
     if (json.data?.needsEmailConfirmation) {
       toast('Check your inbox to confirm your email before signing in.', {
         style: { background: 'var(--accent-gold)', color: 'var(--bg-primary)' },
@@ -50,9 +54,6 @@ export function SignupForm() {
       return
     }
 
-    toast.success('Account created successfully', {
-      style: { background: 'var(--success)', color: 'white' },
-    })
     router.push('/onboarding')
   })
 
